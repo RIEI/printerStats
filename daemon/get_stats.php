@@ -42,5 +42,5 @@ while(1)
         $daemon->printerStatuses->nextPrinter(); #Increment into next Printer Pointer index.
     }
     echo date("Y-m-d H:i:s")." -------------------\r\n Sleeping for 10 min.\r\n";
-    sleep(60);
+    sleep(600);
 }
