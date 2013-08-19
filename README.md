@@ -7,7 +7,7 @@ Right now it is a very crude Printer Status Monitor, for the Ricoh Aficio SP 820
 If I ever get around to adding more printers, I will, but these are all the ones that I have at the place I work.
 
 To use:
-Create a MySQL Database call `printers` make sure it is UTF8_bin.
+Create a MySQL Database called `printers` make sure it is UTF8_bin.
 Import the Printers.sql file into that database.
 
 Copy the contents of the www folder to your HTTP root folder or where ever.
