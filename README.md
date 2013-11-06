@@ -20,4 +20,4 @@ Run the daemon from /folder/you/put/daemon/getstatsd.php
 View the results at http://printershost/printers/index.php
 View graphs of history at http://printershost/printers/graph.php
 
-Graphs are limited to the last 100 history points.
+Graphs are limited to the last 1000 history points.
