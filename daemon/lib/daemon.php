@@ -28,14 +28,181 @@ if not, write to the
 
 class daemon {
     private $config;
-    public function __construct($config, $printers = array(), $printerObj)
+    public $SQL;
+    public $graphs;
+    public $printerStatuses;
+    public $campuses;
+    public $models;
+    public $printerCampus_oneRun;
+    public $printerOnlyName;
+    public $graphsOnlyFlag;
+    public function __construct($argv, $config, $printers = array())
     {
-        $this->config = $config;
-
+        require 'lib/graphs.php';
         require 'lib/SQL.inc.php';
+        $this->args = $this->parseArgs($argv);
+        if(@$this->args['g'] === true or @$this->args['graphonly'] === true)
+        {
+            $this->graphsOnlyFlag = 1;
+        }else
+        {
+            $this->graphsOnlyFlag = 0;
+        }
+
+        if(@$this->args['p'] == true)
+        {
+            $this->printerOnlyName = $this->args['p'];
+        }elseif(@$this->args['printer'] == true)
+        {
+            $this->printerOnlyName = $this->args['printer'];
+        }else
+        {
+            $this->printerOnlyName = 0;
+        }
+
+        if(@$this->args['c'] == true)
+        {
+            $this->printerCampus_oneRun = $this->args['c'];
+        }elseif(@$this->args['campus'] == true)
+        {
+            $this->printerCampus_oneRun = $this->args['campus'];
+        }else
+        {
+            $this->printerCampus_oneRun = 0;
+        }
+
+        if(@$this->args['m'] == true)
+        {
+            $this->printerOnlyModel = $this->args['m'];
+        }elseif(@$this->args['model'] == true)
+        {
+            $this->printerOnlyModel = $this->args['model'];
+        }else
+        {
+            $this->printerOnlyModel = 0;
+        }
+        $this->verbose_levels = array   (
+            0=>"Normal",
+            1=>"Warnings",
+            2=>"Errors",
+            3=>"All",
+            4=>"Debug",
+        );
+        $this->sleepTime = 10;
+        $this->config = $config;
         $this->SQL = new SQL($config);
-        $this->printerStatuses = $printerObj;
-        $this->checkPrinterTable($printers);
+        $this->graphs = new graphs($this->SQL, $config['wwwroot']);
+        $this->models = $this->getPrinterModels($printers);
+        $this->campuses = array();
+        $this->printerStatuses = new printerStatuses($this->parsePrintersList($printers), $this->models);
+        if(!$this->graphsOnlyFlag)
+        {
+            $this->verbose("Check Campus Table", 3);
+            $this->checkCampusTable($printers);
+
+            $this->verbose("Check Printers Table", 3);
+            $this->checkPrinterTable($printers);
+        }
+    }
+
+    public function verbose($message = NULL, $level = NULL)
+    {
+        if(is_null($message))
+        {
+            throw new ErrorException("Message in verbose is null...");
+            return 1;
+        }
+        if(is_null($level))
+        {
+            throw new ErrorException("Level in verbose is null...");
+            return 1;
+        }
+        echo date("Y-m-d H:i:s")."\t-\t$message\r\n";
+
+        return 0;
+    }
+
+    public function log()
+    {
+
+    }
+
+    public function getCampusName($id = NULL)
+    {
+        if($id === NULL)
+        {
+            throw new ErrorException("ID argument is NULL.");
+        }
+        $sql = "SELECT `campus_id` FROM `printers`.`campuses` WHERE `id` = ?";
+        $prep = $this->SQL->conn->prepare($sql);
+        $prep->bindParam(1, $id, PDO::PARAM_INT);
+        $prep->execute();
+        $this->SQL->checkError();
+        $fetch = $prep->fetch(2);
+        return $fetch['campus_name'];
+    }
+
+    private function checkCampusTable($printers = array())
+    {
+        if(empty($printers))
+        {
+            throw new ErrorException("Printers array cannot be empty, you need to be able to check something...");
+        }
+        foreach($printers as $campus => $printers)
+        {
+            $prep = $this->SQL->conn->prepare("SELECT * FROM `printers`.`campuses` WHERE `campus_name` = ? LIMIT 1");
+            $prep->bindParam(1, $campus, PDO::PARAM_STR);
+            $prep->execute();
+            $this->SQL->checkError();
+            $fetch = $prep->fetch(2);
+            if(empty($fetch))
+            {
+                $prep1 = $this->SQL->conn->prepare("INSERT INTO `printers`.`campuses` (`campus_name`) VALUES ( ? )");
+                $prep1->bindParam(1, $campus, PDO::PARAM_STR);
+                $prep1->execute();
+                $this->SQL->checkError();
+                $id = $this->SQL->conn->lastInsertId();
+                echo date("Y-m-d H:i:s")." ----- Inserted new row for Campus: $campus (ID: {$id})\r\n";
+            }else{
+                $id = $fetch['id'];
+                echo date("Y-m-d H:i:s")." ----- Campus ($campus) already exists, (ID: $id)\r\n";
+            }
+            $this->campuses[$id] = $campus;
+        }
+    }
+
+    public function getPrinterName()
+    {
+        return $this->printerStatuses->printers[$this->printerStatuses->printerIndex][0];
+    }
+
+    public function getPrinterModels($printers = array())
+    {
+        $models_ = array();
+        foreach($printers as $printers)
+        {
+            foreach($printers as $printer)
+            {
+                $models_[] = $printer[1];
+            }
+        }
+        return array_unique($models_);
+    }
+
+    private function parsePrintersList($printers)
+    {
+        $printers_new = array();
+        foreach($printers as $key=>$printer)
+        {
+            $campus = $key;
+            foreach($printer as $p)
+            {
+                $p[2] = $campus;
+                $printers_new[] = $p;
+            }
+            echo "-----------\r\n";
+        }
+        return $printers_new;
     }
 
     public function restartSQL()
@@ -50,27 +217,65 @@ class daemon {
         {
             throw new ErrorException("Printers array cannot be empty, you need to be able to check something...");
         }
-        $this->printerStatuses->resetIndex();
-        foreach($printers as $printer)
+        foreach($printers as $campus => $printers)
         {
-            $result = $this->SQL->conn->query("SELECT `id`, `name`, `mac`, `serial` FROM `printers`.`printers` WHERE `name` = '{$printer}'");
-            $this->SQL->checkError();
-            $fetch = $result->fetch(2);
-            if(empty($fetch))
+            echo date("Y-m-d H:i:s")." ----- Campus: $campus...\r\n";
+            foreach($printers as $printer)
             {
-                echo date("Y-m-d H:i:s")." ----- Fetching data...\r\n";
-                $data = $this->printerStatuses->getAll(1);
-                echo date("Y-m-d H:i:s")." ----- Creating Printer...\r\n";
-                $this->createPrinter($printer, $data);
-                echo date("Y-m-d H:i:s")." ----- Inserting History Data...\r\n";
-                $this->insertData($data);
+                $prep = $this->SQL->conn->prepare("SELECT `id`, `name`, `mac`, `serial` FROM `printers`.`printers` WHERE `name` = ?");
+                $prep->bindParam(1, $printer[0], PDO::PARAM_STR);
+                $prep->execute();
+                $this->SQL->checkError();
+                $fetch = $prep->fetch(2);
+                if(empty($fetch))
+                {
+                    $this->printerStatuses->printerFirstRun = 1;
+                    echo date("Y-m-d H:i:s")." ----- Fetching data...\r\n";
+                    $data = $this->printerStatuses->getAll($printer[0], $printer[1]);
+                    if((empty($fetch['serial']) or empty($fetch['mac'])) and !empty($fetch['name']))
+                    {
+                        echo date("Y-m-d H:i:s")." ----- Updating Printer...\r\n";
+                        $this->updatePrinter($fetch['id'], $data['mac'], $data['serial']);
+                    }else
+                    {
+                        echo date("Y-m-d H:i:s")." ----- Creating Printer...\r\n";
+                        $this->createPrinter($printer[0], $printer[1], $this->getCampusID($campus), $data['mac'], $data['serial']);
+                    }
+                    echo date("Y-m-d H:i:s")." ----- Inserting History Data...\r\n";
+                    $this->insertData($data);
+                }else{$this->printerStatuses->printerFirstRun = 0;}
             }
-            $this->printerStatuses->nextPrinter();
+            $this->printerStatuses->printerFirstRun = 0;
         }
-        $this->printerStatuses->resetIndex();
     }
 
-    public function createPrinter($printer, $info)
+    private function updatePrinter($id, $mac, $serial)
+    {
+        $prep = $this->SQL->conn->prepare("UPDATE `printers`.`printers` SET `mac` = ? AND `serial` = ? WHERE `id` = ?");
+        $prep->bindParam(1, $mac, PDO::PARAM_STR);
+        $prep->bindParam(2, $serial, PDO::PARAM_STR);
+        $prep->bindParam(3, $id, PDO::PARAM_INT);
+        $prep->execute();
+        $this->SQL->checkError();
+        echo date("Y-m-d H:i:s")." ----- Updated Printer Row with MAC Address and Serial Number...\r\n";
+        return 1;
+    }
+
+    public function getCampusID($campus = NULL)
+    {
+        if($campus === NULL)
+        {
+            throw new ErrorException("Campus argument is NULL.");
+        }
+        $prep = $this->SQL->conn->prepare("SELECT `id` FROM `printers`.`campuses` WHERE `campus_name` = ?");
+        $prep->bindParam(1, $campus, PDO::PARAM_STR);
+        $prep->execute();
+        $this->SQL->checkError();
+        $fetch = $prep->fetch(2);
+        return $fetch['id'];
+    }
+
+    public function createPrinter($printer, $model, $campus_id, $mac, $serial)
     {
         echo date("Y-m-d H:i:s")." ----- Creating Info Row for Printer: $printer ...\r\n";
         $prep = $this->SQL->conn->prepare("INSERT INTO `printers`.`printers`
@@ -78,23 +283,30 @@ class daemon {
             `id`,
             `name`,
             `mac`,
-            `serial`
+            `serial`,
+            `model`,
+            `campus_id`
         )
         VALUES
         (
             '',
             ?,
             ?,
+            ?,
+            ?,
             ?
         )");
+
         $prep->bindParam(1, $printer, PDO::PARAM_STR);
-        $prep->bindParam(2, $info['mac'], PDO::PARAM_STR);
-        $prep->bindParam(3, $info['serial'], PDO::PARAM_STR);
+        $prep->bindParam(2, $mac, PDO::PARAM_STR);
+        $prep->bindParam(3, $serial, PDO::PARAM_STR);
+        $prep->bindParam(4, $model, PDO::PARAM_STR);
+        $prep->bindParam(5, $campus_id, PDO::PARAM_STR);
         $prep->execute();
         $this->SQL->checkError();
     }
 
-    private function getPrinterID($name = "")
+    public function getPrinterID($name = "")
     {
         $result = $this->SQL->conn->query("SELECT `id` FROM `printers`.`printers` WHERE `name` = '".$name."'");
         $this->SQL->checkError();
@@ -136,6 +348,7 @@ class daemon {
             ?,
             ?
         )");
+
         $printerID = $this->getPrinterID($data['name']);
         $prep->bindParam(1, $printerID, PDO::PARAM_STR);
         $prep->bindParam(2, $data['time'], PDO::PARAM_INT);
@@ -151,6 +364,46 @@ class daemon {
         $prep->execute();
         $this->SQL->checkError();
         echo date("Y-m-d H:i:s")." ----- Data inserted.\r\n";
+    }
 
+    function parseArgs($argv)
+    {
+        array_shift($argv);
+        $out = array();
+        foreach ($argv as $arg)
+        {
+            if (substr($arg,0,2) == '--')
+            {
+                $eqPos = strpos($arg,'=');
+                if ($eqPos === false)
+                {
+                    $key = substr($arg,2);
+                    $out[$key] = isset($out[$key]) ? $out[$key] : true;
+                } else
+                {
+                    $key = substr($arg,2,$eqPos-2);
+                    $out[$key] = substr($arg,$eqPos+1);
+                }
+            }elseif(substr($arg,0,1) == '-')
+            {
+                if (substr($arg,2,1) == '=')
+                {
+                    $key = substr($arg,1,1);
+                    $out[$key] = substr($arg,3);
+                }else
+                {
+                    $chars = str_split(substr($arg,1));
+                    foreach ($chars as $char)
+                    {
+                        $key = $char;
+                        $out[$key] = isset($out[$key]) ? $out[$key] : true;
+                    }
+                }
+            }else
+            {
+                $out[] = $arg;
+            }
+        }
+        return $out;
     }
 }

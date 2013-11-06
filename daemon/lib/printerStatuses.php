@@ -19,19 +19,21 @@ if not, write to the
    Boston, MA 02111-1307 USA
 */
 
-/**
- * User: PFerland
- * Date: 8/16/13
- * Time: 4:17 PM
- */
 
-class printerStatuses {
-
-    public function __construct($printers = array())
+class printerStatuses
+{
+    public static $dataFetchErrorFlag;
+    public function __construct($printers = array(), $models = array())
     {
         $this->printers = $printers;
+        $this->printerFirstRun = 0;
         $this->printerIndex = 0;
         $this->numPrinters = count($printers)-1;
+        $this->currentPrinterName = "";
+        $this->currentPrinterCampus = "";
+        $this->createPrinterClasses($models);
+        $this->currentPrinterModel = "";
+        $this->dataFetchErrorFlag = 0;
     }
 
     public function nextPrinter()
@@ -41,26 +43,51 @@ class printerStatuses {
             return NULL;
         }else
         {
+            $this->dataFetchErrorFlag = 0;
             $this->printerIndex++;
+        }
+    }
+
+    private function createPrinterClasses($models = array())
+    {
+        foreach($models as $model)
+        {
+            require "models/$model.model.php";
+            $this->$model = new $model();
         }
     }
 
     public function previousPrinter()
     {
-        $this->printerIndex--;
+
+        if($this->printerIndex === 0)
+        {
+            return 0;
+        }else
+        {
+            $this->dataFetchErrorFlag = 0;
+            $this->printerIndex;
+            return 0;
+        }
+    }
+
+    private function getPrinterModel()
+    {
+        return $this->printers[$this->printerIndex][1];
     }
 
     private function getPrinterName()
     {
-        return $this->printers[$this->printerIndex];
+        return $this->printers[$this->printerIndex][0];
     }
 
     public function resetIndex()
     {
+        $this->dataFetchErrorFlag = 0;
         $this->printerIndex = 0;
     }
 
-    function urlExists($url = NULL)
+    public static function urlExists($url = NULL)
     {
         if($url == NULL) return false;
         $ch = curl_init($url);
@@ -77,152 +104,42 @@ class printerStatuses {
         }
     }
 
-    public function getAll($first = 0)
+    public function getAll($name = NULL, $model = NULL)
     {
-        $name = $this->getPrinterName();
-        if(!$this->urlExists("http://$name/"))
+        if($name === NULL)
         {
-            echo date("Y-m-d H:i:s")." ---- Printer ".$name." Offline, setting blank data and skipping checks...\r\n";
-            $data['name']   = $name;
-            $data['time']   = time();
-            if($first)
-            {
-                $data['mac']    = "";
-                $data['serial'] = "";
-            }
-            $data['status'] = array(0=>"Offline", 1=>"");
-            $data['paper']  = array("Tray 1"=>"","Tray 2"=>"","Tray 3"=>"");
-            $data['count']  = 0;
-            $data['levels'] = array("Toner"=>0.0,"Maint Kit A"=>0.0,"Maint Kit B"=>0.0);
-        }else{
-            echo date("Y-m-d H:i:s")." ---- Checking Printer ".$name." ...\r\n";
-            $data['name']   = $name;
-            $data['time']   = time();
-            if($first)
-            {
-                echo "Mac Address...";
-                $data['mac']    = $this->getMac();
-                echo "Serial number...";
-                $data['serial'] = $this->getSerial();
-            }
-            echo "Printer Status...";
-            $data['status'] = $this->getPrinterStatus();
-            echo "Paper Levels...";
-            $data['paper']  = $this->getPaperLevels();
-            echo "Page Count...";
-            $data['count']  = $this->getPageCount();
-            echo "Ink Levels...\r\n";
-            $data['levels'] = $this->getInkLevels();
+            $name = $this->getPrinterName();
         }
-        return $data;
-    }
+        if($model === NULL)
+        {
+            $model = $this->getPrinterModel();
+        }
+        $this->currentPrinterModel = $model;
+        $data['name']   = $name;
+        $data['time']   = time();
+        $this->$model->currentPrinterName = $name;
+        if($this->printerFirstRun)
+        {
+            echo "Mac Address...";
+            $data['mac']    = $this->$model->getMac();
+            echo "Serial number...";
+            $data['serial'] = $this->$model->getSerial();
+        }
+        echo "Printer Status...";
+        $data['status'] = $this->$model->getPrinterStatus();
+        echo "Paper Levels...";
+        $data['paper']  = $this->$model->getPaperLevels();
+        echo "Page Count...";
+        $data['count']  = $this->$model->getPageCount();
+        echo "Ink Levels...\r\n";
+        $data['levels'] = $this->$model->getInkLevels();
 
-    public function getPrinterStatus()
-    {
-        $html = file_get_html("http://{$this->printers[$this->printerIndex]}/web/guest/en/websys/webArch/topPage.cgi");
-        foreach($html->find('font') as $element)
-        {
-            $status = $element->innertext;
-        }
-        foreach($html->find('textarea') as $element)
-        {
-            $desc = $element->innertext;
-        }
-        $data = array($status, $desc);
-        return $data;
-    }
-
-    public function getInkLevels()
-    {
-        $levels = array();
-        $html = file_get_html("http://{$this->printers[$this->printerIndex]}/web/guest/en/webprinter/supply.cgi");
-        foreach($html->find('td') as $key=>$element)
-        {
-            switch($key)
-            {
-                case 77:
-                    $label = "Toner";
-                    $width = $element->find("img")[0]->width;
-                    $levels[$label] = round( ((($width+0)/162)*100), 2);
-                    break;
-                case 105:
-                    $label = "Maint Kit A";
-                    $width = $element->find("img")[0]->width;
-                    $levels[$label] = round( ((($width+0)/162)*100), 2);
-                    break;
-                case 119:
-                    $label = "Maint Kit B";
-                    $width = $element->find("img")[0]->width;
-                    $levels[$label] = round( ((($width+0)/162)*100), 2);
-                    break;
-            }
-        }
-        return $levels;
-    }
-
-    public function getPaperLevels()
-    {
-        $paper = array();
-        $html = file_get_html("http://{$this->printers[$this->printerIndex]}/web/guest/en/websys/webArch/topPage.cgi");
-        foreach($html->find('td') as $key=>$element)
-        {
-            switch($key)
-            {
-                case 139:
-                    $paper["Tray 1"] = str_replace(array("/images/deviceStP", "_16.gif"), "", $element->find("img")[0]->src);
-                    break;
-                case 153:
-                    $paper["Tray 2"] = str_replace(array("/images/deviceStP", "_16.gif"), "", $element->find("img")[0]->src);
-                    break;
-                case 167:
-                    $paper["Tray 3"] = str_replace(array("/images/deviceStP", "_16.gif"), "", $element->find("img")[0]->src);
-                    break;
-            }
-        }
-        return $paper;
-    }
-
-    public function getPageCount()
-    {
-        $html = file_get_html("http://{$this->printers[$this->printerIndex]}/web/guest/en/websys/status/getUnificationCounter.cgi");
-        foreach($html->find('td') as $key=>$element)
-        {
-            if($key != 57) { continue; }
-            $count = $element->innertext;
-            break;
-        }
-        return $count;
-    }
-
-    public function getSerial()
-    {
-        $html = file_get_html("http://{$this->printers[$this->printerIndex]}/web/guest/en/websys/status/configuration.cgi");
-        foreach($html->find('td') as $key=>$element)
-        {
-            if($key === 92)
-            {
-                $serial = $element->innertext;
-                break;
-            }
-        }
-        return $serial;
-    }
-
-    public function getMac()
-    {
-        $html = file_get_html("http://{$this->printers[$this->printerIndex]}/web/guest/en/websys/netw/getInterface.cgi");
-        if(empty($html))
+        if($this->dataFetchErrorFlag)
         {
             return -1;
-        }
-        foreach($html->find('td') as $key=>$element)
+        }else
         {
-            if($key === 36)
-            {
-                $mac = $element->innertext;
-                break;
-            }
+            return $data;
         }
-        return $mac;
     }
 }
