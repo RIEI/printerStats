@@ -20,7 +20,7 @@ if not, write to the
 */
 
 require "lib/config.php"; #www config
-require $WWWconfig['daemon_path']."config.php"; #daemon config, used for the SQL class
+require $WWWconfig['daemon_path']."config/config.php"; #daemon config, used for the SQL class
 require $WWWconfig['daemon_path']."lib/SQL.inc.php"; #the uh.. SQL class...
 require "smarty/Smarty.class.php"; #the uh.. SQL class...
 
@@ -71,9 +71,10 @@ $i = 0;
 foreach($stats as $key=>$printers)
 {
     $campuses[$i]['name'] = $key;
-    $ii = 0;
+    $ii = 1;
     foreach($printers as $stat)
     {
+
         if($stat['status'] == "Offline" || $stat['status'] == "Alert")
         {
             $status_color = "bad";
@@ -90,6 +91,11 @@ foreach($stats as $key=>$printers)
         $campuses[$i]['array'][$ii]['toner_color'] = find_color((int)$stat['toner']);
         $campuses[$i]['array'][$ii]['kit_a_color'] = find_color((int)$stat['kit_a']);
         $campuses[$i]['array'][$ii]['kit_b_color'] = find_color((int)$stat['kit_b']);
+        $campuses[$i]['array'][$ii]['new_row'] = "";
+        if((int)$width+2 === (int)$ii)
+        {
+            $campuses[$i]['array'][$ii]['new_row'] = "</tr><tr>";
+        }
         $ii++;
     }
     $i++;

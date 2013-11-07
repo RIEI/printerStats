@@ -76,7 +76,8 @@
         <th colspan="10">{$campus.name}</th>
     </tr>
     <tr>
-    {foreach $campus.array as $printer}
+{foreach $campus.array as $printer}
+    {$printer.new_row}
         <td class="center">
             <table class='printer_table'>
                 <tbody>
@@ -113,13 +114,13 @@
                 </tbody>
             </table>
         </td>
-    {foreachelse}
+{foreachelse}
         <tr>
             <td>
                 There are no Printers for this campus yet...
             </td>
         </tr>
-    {/foreach}
+{/foreach}
     </tr>
     <tr>
         <td></td>
