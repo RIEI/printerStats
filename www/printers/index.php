@@ -22,16 +22,16 @@ if not, write to the
 require "lib/config.php"; #www config
 require $WWWconfig['daemon_path']."config/config.php"; #daemon config, used for the SQL class
 require $WWWconfig['daemon_path']."lib/SQL.inc.php"; #the uh.. SQL class...
-require "smarty/Smarty.class.php"; #the uh.. SQL class...
+require $WWWconfig['smarty_path']."/Smarty.class.php"; #the uh.. SQL class...
 
 #now lets build the SQL class.
 $SQL = new SQL($config);
 
 $smarty = new smarty();
-$smarty->setTemplateDir( 'smarty/templates/' );
-$smarty->setCompileDir( 'smarty/templates_c/' );
-$smarty->setCacheDir( 'smarty/cache/' );
-$smarty->setConfigDir( '/smarty/configs/');
+$smarty->setTemplateDir( $WWWconfig['smarty_templates_path'] );
+$smarty->setCompileDir( $WWWconfig['smarty_path'].'/templates_c/' );
+$smarty->setCacheDir( $WWWconfig['smarty_path'].'/cache/' );
+$smarty->setConfigDir( $WWWconfig['smarty_path'].'/configs/');
 
 #fetch the Printers that we are watching.
 $width = $WWWconfig['width'];
