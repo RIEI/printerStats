@@ -1,2 +1,4 @@
 .idea
 *.pyc
+*.ini
+www/printers/smarty/*

@@ -1,33 +1,36 @@
 __author__ = 'pferland'
 __email__ = "pferland@randomintervals.com"
-__lastedit__ = "2013-12-09"
-print "PrinterStats Daemon v2.0 GPL V2.0 (05/12/2013) " + __author__ + " Email: " + __email__ + "Last Edit: " + __lastedit__
-import sys, pymysql, re, PrinterStats, time, graphing
+__lastedit__ = "2013-12-11"
+print "PrinterStats Daemon v2.0 GPL V2.0 (05/12/2013) \n\tAuthor: " + __author__ + "\n\tEmail: " + __email__ + "\n\tLast Edit: " + __lastedit__
+import sys, pymysql, re, time
+from PrintersConfig import *
+from PrinterStatsSQL import *
+from PrinterStats import *
+from Graphing import *
 
-config = PrinterStats.ConfigMap("Daemon")
-campuses = PrinterStats.CampusMap("Campuses")['Campuses'].split(",")
-printers = PrinterStats.ConfigMapPrinters("Printers").get("Printers")
-
-conn = pymysql.Connect(host=config['host'], user=config['db_user'], passwd=config['db_pwd'], db=config['db'], charset=config['collate'])
-cur = conn.cursor()
-
+# INI file init, config/config.ini and config/printers.ini
+pcfg = PrintersConfig()
+config = pcfg.ConfigMap("Daemon")
+campuses = pcfg.CampusMap("Campuses")['Campuses'].split(",")
+printers = pcfg.ConfigMapPrinters("Printers").get("Printers")
 rg = re.compile('(.*?),', re.IGNORECASE | re.DOTALL)
-
 printer_campuses = []
 printer_campus_ids = []
 all_hosts = {}
 models = []
 i = 0
 
+#SQL object init
+conn = PrinterStatsSQL(config)
+pStats = PrinterStats(conn)
+graph = Graphing(conn)
+
 for campus in campuses:
-    cur.execute("SELECT * FROM `printers`.`campuses` WHERE `campus_name` = %s", campus)
-    row = cur.fetchone()
+    row = conn.getcampus(campus)
     if row:
-        campus_id = row[0]
+        campus_id = row
     else:
-        cur.execute("INSERT INTO `printers`.`campuses` (`id`, `campus_name`) VALUES (NULL, %s)", campus)
-        conn.commit()
-        campus_id = cur.lastrowid
+        campus_id = conn.setcampusrow(campus)
 
     campus_printers = rg.findall(printers.get(campus.lower()))
     for printer in campus_printers:
@@ -39,11 +42,10 @@ for campus in campuses:
             continue
         models.append(split[1])
 
-Model_functions = PrinterStats.create_models_functions(models)
+Model_functions = pStats.create_models_functions(models)
 
 print "Checking Printers table Population."
-PrinterStats.check_printers_table(Model_functions, conn, cur, all_hosts)
-
+pStats.check_printers_table(Model_functions, conn, all_hosts)
 
 print "Moving on to the main loop."
 
@@ -52,12 +54,14 @@ while 1:
         print "---------------------"
         host = all_hosts[printer][0]
         model = all_hosts[printer][1]
-        supplies = PrinterStats.daemon_get_host_stats(Model_functions, host, model)
+        printer_id = conn.getprinterid(printer)
+        supplies = pStats.daemon_get_host_stats(Model_functions, host, model)
         if supplies == -1:
             continue
-        cur.execute("INSERT INTO `printers`.`history` ( `id`, `printer_id`, `timestamp`, `status`, `desc`, `tray_1`, "
-                    "`tray_2`, `tray_3`, `count`, `toner`, `kit_a`, `kit_b` )"
-                    "VALUES ( NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s )", (PrinterStats.getprinterid(cur, host), str(time.time()),
-                                                                                    str(supplies[0][0]), str(supplies[0][1]), str(supplies[2][0]), str(supplies[2][1]), str(supplies[2][2]), str(supplies[1]),
-                                                                                    str(supplies[3][0]), str(supplies[3][1]), str(supplies[3][2])))
-        conn.commit()
+        try:
+            conn.setprintervalues(supplies, printer_id)
+        except StandardError:
+            print "Ummm.. something bad happened"
+            continue
+        #Data has been inserted, lets graph it!
+        graphing.gplot(printer_id, printer)
