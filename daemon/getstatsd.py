@@ -23,10 +23,10 @@ i = 0
 #SQL object init
 conn = PrinterStatsSQL(config)
 pStats = PrinterStats(conn)
-graph = Graphing(conn)
+graph = Graphing(conn, config['wwwroot'])
 
 for campus in campuses:
-    row = conn.getcampus(campus)
+    row = conn.getcampusid(campus)
     if row:
         campus_id = row
     else:
@@ -54,14 +54,14 @@ while 1:
         print "---------------------"
         host = all_hosts[printer][0]
         model = all_hosts[printer][1]
-        printer_id = conn.getprinterid(printer)
+        printer_id = conn.getprinterid(host)
+        campus_name = conn.getprinterscampusname(printer_id)
+
         supplies = pStats.daemon_get_host_stats(Model_functions, host, model)
         if supplies == -1:
             continue
-        try:
-            conn.setprintervalues(supplies, printer_id)
-        except StandardError:
-            print "Ummm.. something bad happened"
-            continue
+
+        conn.setprintervalues(supplies, host, printer_id)
+
         #Data has been inserted, lets graph it!
-        graphing.gplot(printer_id, printer)
+        graph.graph(printer_id, host, campus_name)

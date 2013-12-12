@@ -20,18 +20,19 @@ if not, write to the
 */
 
 require "lib/config.php"; #www config
-require $WWWconfig['daemon_path']."config/config.php"; #daemon config, used for the SQL class
-require $WWWconfig['daemon_path']."lib/SQL.inc.php"; #the uh.. SQL class...
-require $WWWconfig['smarty_path']."/Smarty.class.php"; #the uh.. SQL class...
+$config = parse_ini_file($WWWconfig['daemon_path']."/config/config.ini");
+require "lib/SQL.php"; #the uh.. SQL class...
+require $WWWconfig['smarty_path']."/Smarty.class.php"; #get smarty..
 
 #now lets build the SQL class.
 $SQL = new SQL($config);
 
+#setup smarty
 $smarty = new smarty();
-$smarty->setTemplateDir( $WWWconfig['smarty_templates_path'] );
-$smarty->setCompileDir( $WWWconfig['smarty_path'].'/templates_c/' );
-$smarty->setCacheDir( $WWWconfig['smarty_path'].'/cache/' );
-$smarty->setConfigDir( $WWWconfig['smarty_path'].'/configs/');
+$smarty->setTemplateDir( $WWWconfig['smarty_path']."/templates/" );
+$smarty->setCompileDir( $WWWconfig['smarty_path']."/templates_c/" );
+$smarty->setCacheDir( $WWWconfig['smarty_path']."/cache/" );
+$smarty->setConfigDir( $WWWconfig['smarty_path']."/configs/" );
 
 #fetch the Printers that we are watching.
 $width = $WWWconfig['width'];
@@ -74,7 +75,7 @@ foreach($stats as $key=>$printers)
     $ii = 1;
     foreach($printers as $stat)
     {
-
+        $stat['status'] = (@$stat['status'] ? $stat['status'] : "Offline");
         if($stat['status'] == "Offline" || $stat['status'] == "Alert")
         {
             $status_color = "bad";
@@ -82,15 +83,15 @@ foreach($stats as $key=>$printers)
             $status_color = "white";
         }
         $campuses[$i]['array'][$ii] = array_merge(array(), $stat);
-        $campuses[$i]['array'][$ii]['date'] = date('Y-m-d H:i:s', $stat['timestamp']);
-        $campuses[$i]['array'][$ii]['count'] = number_format($stat['count']);
+        $campuses[$i]['array'][$ii]['date'] = date('Y-m-d H:i:s', @$stat["timestamp"]);
+        $campuses[$i]['array'][$ii]['count'] = number_format(@$stat['count']);
         $campuses[$i]['array'][$ii]['status_color'] = $status_color;
-        $campuses[$i]['array'][$ii]['tray1_color'] = find_color((int)$stat['tray_1']);
-        $campuses[$i]['array'][$ii]['tray2_color'] = find_color((int)$stat['tray_2']);
-        $campuses[$i]['array'][$ii]['tray3_color'] = find_color((int)$stat['tray_3']);
-        $campuses[$i]['array'][$ii]['toner_color'] = find_color((int)$stat['toner']);
-        $campuses[$i]['array'][$ii]['kit_a_color'] = find_color((int)$stat['kit_a']);
-        $campuses[$i]['array'][$ii]['kit_b_color'] = find_color((int)$stat['kit_b']);
+        $campuses[$i]['array'][$ii]['tray1_color'] = find_color((int)@$stat['tray_1']);
+        $campuses[$i]['array'][$ii]['tray2_color'] = find_color((int)@$stat['tray_2']);
+        $campuses[$i]['array'][$ii]['tray3_color'] = find_color((int)@$stat['tray_3']);
+        $campuses[$i]['array'][$ii]['toner_color'] = find_color((int)@$stat['toner']);
+        $campuses[$i]['array'][$ii]['kit_a_color'] = find_color((int)@$stat['kit_a']);
+        $campuses[$i]['array'][$ii]['kit_b_color'] = find_color((int)@$stat['kit_b']);
         $campuses[$i]['array'][$ii]['new_row'] = "";
         if((int)$width+2 === (int)$ii)
         {

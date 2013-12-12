@@ -31,4 +31,4 @@ To use:
 8) Run the daemon from /folder/you/put/daemon/getstatsd.py
 9) View the results at http://printershost/printers/index.php
 
-Graph data limiting is configurable in the daemon config.ini
+Graph data limiting is configurable in the daemon config.ini, wouldnt recommend more than 100 data points, it just looks bad.

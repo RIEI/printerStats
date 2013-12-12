@@ -4,6 +4,7 @@ from collections import defaultdict
 from types import ModuleType
 import urllib2
 
+
 class PrinterStats:
     def __init__(self, conn):
         self.conn = conn
@@ -21,7 +22,6 @@ class PrinterStats:
                     model_funcs[model_name] = model_obj
         return model_funcs
 
-
     def check_printers_table(self, model_functions, conn, all_hosts):
         for printer in all_hosts:
             #print "---------------------"
@@ -30,7 +30,6 @@ class PrinterStats:
             pid = all_hosts[printer][2]
             row = conn.getprinterid(shost)
             if not row:
-                print shost
                 check = self.hostcheck(shost)
                 print shost + " is " + check
                 if check == "down":
@@ -54,46 +53,51 @@ class PrinterStats:
 
                 if supplies == -1:
                     continue
-                self.conn.setprinter(shost, supplies)
+                self.conn.setprinter(shost, pid, model, supplies)
             #else:
                 #print row
         return 1
 
-
     def daemon_get_host_stats(self, model_functions, shost, model):
         supplies = []
-        check = hostcheck.hostcheck(shost)
+        check = self.hostcheck(shost)
         print shost + " is " + check
         if check == "down":
             return -1
         else:
-            print "Gathering Status."
+            sys.stdout.write("Gathering Data: Status")
+            sys.stdout.flush()
             status = model_functions[model].getstatus(shost)
             if status == -1:
                 print "Host is not returning correct pages, check host."
                 return -1
             supplies.append(status)
 
-            print "Gathering Counter."
+            sys.stdout.write(", Counter")
+            sys.stdout.flush()
             counter = model_functions[model].getcounter(shost)
             if counter == -1:
                 print "Host is not returning correct pages, check host."
                 return -1
             supplies.append(counter)
 
-            print "Gathering Paper Levels."
+            sys.stdout.write(", Paper Levels")
+            sys.stdout.flush()
             paper = model_functions[model].getpaperlevels(shost)
             if paper == -1:
                 print "Host is not returning correct pages, check host."
                 return -1
             supplies.append(paper)
 
-            print "Gathering Supply Levels."
+            sys.stdout.write(", Supply Levels")
+            sys.stdout.flush()
             supply = model_functions[model].getsupplies(shost)
             if supply == -1:
                 print "Host is not returning correct pages, check host."
                 return -1
             supplies.append(supply)
+            sys.stdout.write("\n")
+            sys.stdout.flush()
             return supplies
 
     def hostcheck(self, shost):
