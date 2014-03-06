@@ -30,6 +30,10 @@ class PrinterStatsSQL:
         self.conn.commit()
         return self.cur.lastrowid
 
+###############################
+######## Start of Get
+######## Functions
+###############################
     def getcampusid(self, campus_name):
         self.cur.execute("SELECT `id` FROM `printers`.`campuses` WHERE `campus_name` = %s", campus_name)
         row = self.cur.fetchone()
