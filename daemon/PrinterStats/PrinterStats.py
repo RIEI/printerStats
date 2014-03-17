@@ -29,33 +29,37 @@ class PrinterStats:
             model = all_hosts[printer][1]
             pid = all_hosts[printer][2]
             row = conn.getprinterid(shost)
+            check = self.hostcheck(shost)
+            print shost + " is " + check
+            if check == "down":
+                if not row:
+                    self.conn.setprinter(shost, pid, model, '')
+                else:
+                    self.conn.updateprinter(shost, model, '')
+                continue
+
+            supplies = []
+            print "Gathering Mac Address."
+            mac = model_functions[model].getphysicaladdress(shost)
+            if mac == -1:
+                print "Host is not returning correct pages, check host."
+                return -1
+            supplies.append(mac)
+
+            print "Gathering Serial."
+            model_functions[model].getserialnumber
+            serial = model_functions[model].getserialnumber(shost)
+            if serial == -1:
+                print "Host is not returning correct pages, check host."
+                return -1
+            supplies.append(serial)
+
+            if supplies == -1:
+                continue
             if not row:
-                check = self.hostcheck(shost)
-                print shost + " is " + check
-                if check == "down":
-                    continue
-
-                supplies = []
-                print "Gathering Mac Address."
-                mac = model_functions[model].getphysicaladdress(shost)
-                if mac == -1:
-                    print "Host is not returning correct pages, check host."
-                    return -1
-                supplies.append(mac)
-
-                print "Gathering Serial."
-                model_functions[model].getserialnumber
-                serial = model_functions[model].getserialnumber(shost)
-                if serial == -1:
-                    print "Host is not returning correct pages, check host."
-                    return -1
-                supplies.append(serial)
-
-                if supplies == -1:
-                    continue
                 self.conn.setprinter(shost, pid, model, supplies)
-            #else:
-                #print row
+            else:
+                self.conn.updateprinter(shost, model, supplies)
         return 1
 
     def daemon_get_host_stats(self, model_functions, shost, model):

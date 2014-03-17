@@ -25,10 +25,21 @@ class PrinterStatsSQL:
         self.conn.commit()
         return 1
 
+    def updateprinter(self, host_name, model, supplies):
+        if supplies == '':
+            self.cur.execute("UPDATE `printers`.`printers` SET `model` = %s WHERE name = %s ", ( model, host_name))
+            self.conn.commit()
+        else:
+            self.cur.execute("UPDATE `printers`.`printers` SET `mac` = %s, `serial` = %s, `model` = %s WHERE name = %s ", (supplies[0], supplies[1], model, host_name))
+            self.conn.commit()
+        return 1
+
     def setcampusrow(self, campus_name):
         self.cur.execute("INSERT INTO `printers`.`campuses` (`id`, `campus_name`) VALUES (NULL, %s)", campus_name)
         self.conn.commit()
         return self.cur.lastrowid
+
+
 
     def getcampusid(self, campus_name):
         self.cur.execute("SELECT `id` FROM `printers`.`campuses` WHERE `campus_name` = %s", campus_name)

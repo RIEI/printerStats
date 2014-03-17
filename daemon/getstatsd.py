@@ -1,7 +1,7 @@
 __author__ = 'pferland'
 __email__ = "pferland@randomintervals.com"
-__lastedit__ = "2013-12-11"
-print "PrinterStats Daemon v2.0 GPL V2.0 (05/12/2013) \n\tAuthor: " + __author__ + "\n\tEmail: " + __email__ + "\n\tLast Edit: " + __lastedit__
+__lastedit__ = "2014-Mar-14"
+print "PrinterStats Daemon v2.0 GPL V2.0 (2013/May/12) \n\tAuthor: " + __author__ + "\n\tEmail: " + __email__ + "\n\tLast Edit: " + __lastedit__
 import sys, pymysql, re, time
 from PrintersConfig import *
 from PrinterStatsSQL import *
