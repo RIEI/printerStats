@@ -1,32 +1,46 @@
+#!/usr/bin/python
 __author__ = 'pferland'
 __email__ = "pferland@randomintervals.com"
-__lastedit__ = "2014-03-06"
-print "PrinterStats Daemon v2.0 GPL V2.0 ("+ __lastedit__ +") \n\tAuthor: " + __author__ + "\n\tEmail: " + __email__
-import sys, re, os
+__lastedit__ = "2014-Mar-14"
+print "PrinterStats Daemon v2.0 GPL V2.0 (2013/May/12) \n\tAuthor: " + __author__ + "\n\tEmail: " + __email__ + "\n\tLast Edit: " + __lastedit__
+import re, sys, time
 from PrintersConfig import *
 from PrinterStatsSQL import *
 from PrinterStats import *
 
-folder = os.path.dirname(os.path.realpath(__file__))
-print os.path.join(folder+"/config", "printers.ini")
-pid = os.getpid()
-f = open("/var/run/printerstats.pid", "w")
-f.write(str(pid))      # str() converts to string
-f.close()
-
 # INI file init, config/config.ini and config/printers.ini
-pcfg = PrintersConfig(folder)
+pcfg = PrintersConfig()
 config = pcfg.ConfigMap("Daemon")
 campuses = pcfg.CampusMap("Campuses")['Campuses'].split(",")
 printers = pcfg.ConfigMapPrinters("Printers").get("Printers")
 rg = re.compile('(.*?),', re.IGNORECASE | re.DOTALL)
+printer_campuses = []
+printer_campus_ids = []
+all_hosts = {}
+models = []
+i = 0
 
 #SQL object init
 conn = PrinterStatsSQL(config)
 pStats = PrinterStats(conn)
-graph = Graphing(conn, config['wwwroot'])
 
-models, printer_campuses, all_hosts = pcfg.generate_hosts_list(conn, campuses, printers)
+for campus in campuses:
+    row = conn.getcampusid(campus)
+    if row == -1:
+        campus_id = conn.setcampusrow(campus)
+    else:
+        campus_id = row
+    campus_printers = rg.findall(printers.get(campus.lower()))
+    for printer in campus_printers:
+        split = printer.split("|")
+        all_hosts[i] = {0: split[0].replace("\n", ""), 1: split[1], 2: campus_id}
+        printer_campuses.append(campus)
+        i += 1
+        if split[1] in models:
+            continue
+        models.append(split[1])
+
+
 Model_functions = pStats.create_models_functions(models)
 
 print "Checking Printers table Population."
@@ -43,9 +57,8 @@ while 1:
         campus_name = conn.getprinterscampusname(printer_id)
 
         supplies = pStats.daemon_get_host_stats(Model_functions, host, model)
+        #print supplies
         if supplies == -1:
             continue
-
         conn.setprintervalues(supplies, host, printer_id)
-
-        #Data has been inserted, lets graph it!
+    time.sleep(0)

@@ -10,6 +10,6 @@ def getphysicaladdress(shost):
     for supply in soup.findAll("tr", {'class': 'editProp'}):
         for found in supply.findAll("td"):
             if i == 3:
-                return found.contents[0]
+                return str(found.contents[0])
             i += 1
 

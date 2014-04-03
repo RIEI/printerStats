@@ -6,9 +6,9 @@ import urllib2
 def getstatus(shost):
     html = urllib2.urlopen("http://" + shost + "/web/guest/en/websys/webArch/getStatus.cgi")
     soup = BeautifulSoup(html.read())
-    supplies = []
+    status = ""
     for supply in soup.findAll("dd", {'class': 'listboxddm'}):
-        #print str(supply) + "\r\n"
-        supplies.append(supply.contents[1])
+        #print supply.contents[1]
+        status = str(supply.contents[1])
         break;
-    return supplies
+    return status

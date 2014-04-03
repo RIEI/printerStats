@@ -32,7 +32,7 @@ def getpaperlevels(shost):
                 #print i
                 level = m.group(1).replace("_", "").replace("P", "")
                 #print level
-                supplies.append(level)
+                supplies.append(str(level))
     if supplies[2] == "Ot":
         #print "Bad results, try again."
         supplies = []
@@ -51,6 +51,6 @@ def getpaperlevels(shost):
                     #print i
                     level = m.group(1).replace("_", "").replace("P", "")
                     #print level
-                    supplies.append(level)
+                    supplies.append(str(level))
 
     return supplies

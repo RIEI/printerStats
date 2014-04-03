@@ -12,17 +12,30 @@ class PrinterStatsSQL:
             self.limit = " LIMIT " + str(self.limit)
 
     def setprintervalues(self, supplies, host, pid):
-        self.cur.execute("INSERT INTO `printers`.`history` ( `id`, `printer_id`, `timestamp`, `status`, `desc`, `tray_1`, "
+        self.cur.execute("INSERT INTO `printers`.`history` ( `id`, `printer_id`, `timestamp`, `status`, `tray_1`, "
                     "`tray_2`, `tray_3`, `count`, `toner`, `kit_a`, `kit_b` )"
-                    "VALUES ( NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s )", (pid, str(time.time()),
-                                                                                    str(supplies[0][0]), str(supplies[0][1]), str(supplies[2][0]), str(supplies[2][1]), str(supplies[2][2]), str(supplies[1]),
-                                                                                    str(supplies[3][0]), str(supplies[3][1]), str(supplies[3][2])))
+                    "VALUES ( NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s )", (pid, str(time.time()), str(supplies[0]), str(supplies[2][0]),
+                     str(supplies[2][1]), str(supplies[2][2]), str(supplies[1]), str(supplies[3][0]), str(supplies[3][1]), str(supplies[3][2])))
         self.conn.commit()
         return 1
 
     def setprinter(self, host_name, pid, model, supplies):
+        if supplies == '':
+            supplies = ['00:00:00:00:00:00', 'SN00000000']
         self.cur.execute("INSERT INTO `printers`.`printers` ( `id`, `name`, `mac`, `serial`, `model`, `campus_id` ) VALUES ( NULL, %s, %s, %s, %s, %s )", (host_name, supplies[0], supplies[1], model, pid))
         self.conn.commit()
+        return 1
+
+    def setprinteroffline(self, pid, host):
+        self.cur.execute("INSERT INTO `printers`.`history` ( `id`, `printer_id`, `timestamp`, `status`) VALUES ( NULL, %s, %s, 'Offline') ", (pid, str(time.time()) ) )
+
+    def updateprinter(self, host_name, model, supplies):
+        if supplies == '':
+            self.cur.execute("UPDATE `printers`.`printers` SET `model` = %s WHERE name = %s ", ( model, host_name))
+            self.conn.commit()
+        else:
+            self.cur.execute("UPDATE `printers`.`printers` SET `mac` = %s, `serial` = %s, `model` = %s WHERE name = %s ", (supplies[0], supplies[1], model, host_name))
+            self.conn.commit()
         return 1
 
     def setcampusrow(self, campus_name):
@@ -30,13 +43,13 @@ class PrinterStatsSQL:
         self.conn.commit()
         return self.cur.lastrowid
 
-###############################
-######## Start of Get
-######## Functions
-###############################
+
+
     def getcampusid(self, campus_name):
         self.cur.execute("SELECT `id` FROM `printers`.`campuses` WHERE `campus_name` = %s", campus_name)
         row = self.cur.fetchone()
+        if not row:
+            return -1
         return row[0]
 
     def getprinterscampusname(self, printer_id):

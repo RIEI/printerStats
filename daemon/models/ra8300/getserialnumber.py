@@ -12,6 +12,6 @@ def getserialnumber(shost):
         if i == 9:
             for found in supply.findAll("td"):
                 if ii == 3:
-                    return found.contents
+                    return str(found.contents)
                 ii += 1
         i += 1
