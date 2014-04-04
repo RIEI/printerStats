@@ -8,7 +8,9 @@ def getstatus(shost):
     soup = BeautifulSoup(html.read())
     status = ""
     for supply in soup.findAll("dd", {'class': 'listboxddm'}):
-        #print supply.contents[1]
-        status = str(supply.contents[1])
+        if len(supply.contents) > 1:
+            status = str(supply.contents[1])
+        else:
+            status = str(supply.contents[0])
         break;
     return status
