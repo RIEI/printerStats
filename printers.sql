@@ -7,15 +7,14 @@
 -- Server version: 1.0.3
 -- PHP Version: 5.4.4-14+deb7u3
 
+
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
 
+SET NAMES utf8;
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
-
+Create Database printers;
+use printers;
 --
 -- Database: `printers`
 --
@@ -66,6 +65,20 @@ CREATE TABLE IF NOT EXISTS `printers` (
   KEY `id` (`id`)
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=1 ;
 
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `error_log`
+--
+
+CREATE TABLE IF NOT EXISTS `error_log` (
+  `id` int(255) NOT NULL AUTO_INCREMENT,
+  `host` varchar(255) COLLATE utf8_bin NOT NULL,
+  `message` varchar(32) COLLATE utf8_bin NOT NULL,
+  `timestamp` int(32) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `id` (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=1 ;
+
+
+

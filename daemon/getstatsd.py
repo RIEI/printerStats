@@ -1,9 +1,9 @@
 #!/usr/bin/python
 __author__ = 'pferland'
 __email__ = "pferland@randomintervals.com"
-__lastedit__ = "2014-Mar-14"
-print "PrinterStats Daemon v2.0 GPL V2.0 (2013/May/12) \n\tAuthor: " + __author__ + "\n\tEmail: " + __email__ + "\n\tLast Edit: " + __lastedit__
-import re, sys, time
+__lastedit__ = "2014-Apr-04"
+print "PrinterStats Daemon v2.0 GPL V2.0 (2013-Dec) \n\tAuthor: " + __author__ + "\n\tEmail: " + __email__ + "\n\tLast Edit: " + __lastedit__
+import re, sys, time, socket, errno
 from PrintersConfig import *
 from PrinterStatsSQL import *
 from PrinterStats import *
@@ -44,7 +44,11 @@ for campus in campuses:
 Model_functions = pStats.create_models_functions(models)
 
 print "Checking Printers table Population."
-pStats.check_printers_table(Model_functions, conn, all_hosts)
+try:
+    pStats.check_printers_table(Model_functions, conn, all_hosts)
+except socket.error, (value, message):
+    #Log Socket Error Message
+    conn.logError("Printer Table Check", message)
 
 print "Moving on to the main loop."
 
@@ -55,8 +59,18 @@ while 1:
         model = all_hosts[printer][1]
         printer_id = conn.getprinterid(host)
         campus_name = conn.getprinterscampusname(printer_id)
-
-        supplies = pStats.daemon_get_host_stats(Model_functions, host, model)
+        try:
+            supplies = pStats.daemon_get_host_stats(Model_functions, host, model)
+        except socket.error, (value, message):
+            #Log Socket Error Message
+            conn.logError(host, message)
+            #Wait a little and try the printer again. If it fails this time, pass it.
+            try:
+                supplies = pStats.daemon_get_host_stats(Model_functions, host, model)
+            except socket.error, (value, message):
+                #Log Socket Error Message
+                conn.logError(host, message)
+                continue
         #print supplies
         if supplies == -1:
             continue

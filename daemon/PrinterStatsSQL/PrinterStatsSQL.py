@@ -73,6 +73,14 @@ class PrinterStatsSQL:
         else:
             return -1
 
+    def logError(self, host, message):
+        self.cur.execute("INSERT INTO `printers`.`error_log` (`id`, `message`, `host`, `timestamp`) VALUES (NULL, %s, %s, UNIX_TIMESTAMP(NOW()) )", (host, message))
+        row = self.cur.fetchone()
+        if row:
+            return int(row[0])
+        else:
+            return 0
+
     ##########################################################################
     ##########################################################################
     ##########################################################################

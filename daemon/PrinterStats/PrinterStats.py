@@ -1,5 +1,5 @@
 __author__ = 'pferland'
-import sys
+import time, sys
 from collections import defaultdict
 from types import ModuleType
 import urllib2
@@ -72,6 +72,7 @@ class PrinterStats:
 
     def daemon_get_host_stats(self, model_functions, shost, model):
         supplies = []
+        print time.strftime("%d/%m/%Y %H:%M:%S")
         check = self.hostcheck(shost)
         print shost + " is " + check
         if check == "down":
