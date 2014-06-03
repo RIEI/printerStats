@@ -85,6 +85,7 @@ foreach($stats as $key=>$printers)
         $campuses[$i]['array'][$ii] = array_merge(array(), $stat);
         $campuses[$i]['array'][$ii]['date'] = date('Y-m-d H:i:s', @$stat["timestamp"]);
         $campuses[$i]['array'][$ii]['count'] = number_format(@$stat['count']);
+        $campuses[$i]['array'][$ii]['id'] = @$stat['printer_id'];
         $campuses[$i]['array'][$ii]['status_color'] = $status_color;
         $campuses[$i]['array'][$ii]['tray1_color'] = find_color((int)@$stat['tray_1']);
         $campuses[$i]['array'][$ii]['tray2_color'] = find_color((int)@$stat['tray_2']);

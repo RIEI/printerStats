@@ -20,19 +20,23 @@ def getpaperlevels(shost):
                     continue
                 if i == 2:
                     continue
-                if i == 3:
+                if i == 4:
                     continue
-                if i == 5:
+                if i == 6:
                     continue
                 if i == 7:
                     continue
-                if i > 8:
+                if i == 8:
+                    continue
+                if i > 9:
                     break
-
                 #print i
                 level = m.group(1).replace("_", "").replace("P", "")
                 #print level
-                supplies.append(str(level))
+                if str(level) == "end":
+                    supplies.append("0")
+                else:
+                    supplies.append(str(level))
     if supplies[2] == "Ot":
         #print "Bad results, try again."
         supplies = []
@@ -51,6 +55,9 @@ def getpaperlevels(shost):
                     #print i
                     level = m.group(1).replace("_", "").replace("P", "")
                     #print level
-                    supplies.append(str(level))
+                    if str(level) == "end":
+                        supplies.append("0")
+                    else:
+                        supplies.append(str(level))
 
     return supplies

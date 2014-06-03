@@ -4,11 +4,11 @@ import os
 
 
 class PrintersConfig:
-    def __init__(self):
+    def __init__(self, folder):
         self.Config = ConfigParser()
         self.Config2 = ConfigParser()
-        self.Config.read(os.path.join("config", "printers.ini"))
-        self.Config2.read(os.path.join("config", "config.ini"))
+        self.Config.read(os.path.join(folder + "/config", "printers.ini"))
+        self.Config2.read(os.path.join(folder + "/config", "config.ini"))
 
     def ConfigMap(self, section):
         dict1 = {}
