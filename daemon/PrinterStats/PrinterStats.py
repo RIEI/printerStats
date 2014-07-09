@@ -1,5 +1,5 @@
 __author__ = 'pferland'
-import sys
+import time, sys
 from collections import defaultdict
 from types import ModuleType
 import urllib2
@@ -23,8 +23,9 @@ class PrinterStats:
         return model_funcs
 
     def check_printers_table(self, model_functions, conn, all_hosts):
+        print "---------------------"
+
         for printer in all_hosts:
-            #print "---------------------"
             shost = all_hosts[printer][0]
             model = all_hosts[printer][1]
             pid = all_hosts[printer][2]
@@ -34,8 +35,10 @@ class PrinterStats:
             if check == "down":
                 if not row:
                     self.conn.setprinter(shost, pid, model, '')
+                    self.conn.setprinteroffline(pid, shost)
                 else:
-                    self.conn.updateprinter(shost, model, '')
+                    self.conn.setprinteroffline(pid, shost)
+                print "---------------------"
                 continue
 
             supplies = []
@@ -43,6 +46,7 @@ class PrinterStats:
             mac = model_functions[model].getphysicaladdress(shost)
             if mac == -1:
                 print "Host is not returning correct pages, check host."
+                print "---------------------"
                 return -1
             supplies.append(mac)
 
@@ -51,19 +55,24 @@ class PrinterStats:
             serial = model_functions[model].getserialnumber(shost)
             if serial == -1:
                 print "Host is not returning correct pages, check host."
+                print "---------------------"
                 return -1
             supplies.append(serial)
 
             if supplies == -1:
+                print "Empty Supplies list."
+                print "---------------------"
                 continue
             if not row:
                 self.conn.setprinter(shost, pid, model, supplies)
             else:
                 self.conn.updateprinter(shost, model, supplies)
+            print "---------------------"
         return 1
 
     def daemon_get_host_stats(self, model_functions, shost, model):
         supplies = []
+        print time.strftime("%d/%m/%Y %H:%M:%S")
         check = self.hostcheck(shost)
         print shost + " is " + check
         if check == "down":

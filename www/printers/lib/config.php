@@ -1,5 +1,14 @@
 <?php
-$WWWconfig['daemon_path']   =   '/opt/printers/daemon/';
-$WWWconfig['www_path']      =   '/var/www/printers/';
-$WWWconfig['smarty_path']      =   '/var/www/printers/smarty/';
-$WWWconfig['width']         =   7;
+
+#SQL Settings
+$WWWconfig['SQL']['host']    =  "10.2.75.122";
+$WWWconfig['SQL']['srvc']    =  "mysql";
+$WWWconfig['SQL']['db_user'] =  "printerstats";
+$WWWconfig['SQL']['db_pwd']  =  "printerstats";
+$WWWconfig['SQL']['db']      =  "printers";
+$WWWconfig['SQL']['collate'] =  "utf8";
+$WWWconfig['SQL']['engine']  =  "innodb";
+
+#HTTP settings
+$WWWconfig['http']['smarty_path']      =   '/var/www/smarty';
+$WWWconfig['http']['width']         =   7;

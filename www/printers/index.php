@@ -35,21 +35,40 @@ $smarty->setCacheDir( $WWWconfig['smarty_path']."/cache/" );
 $smarty->setConfigDir( $WWWconfig['smarty_path']."/configs/" );
 
 #fetch the Printers that we are watching.
-$width = $WWWconfig['width'];
+$campus = (int)$_GET['campus_id'];
+
+$width = 7; #$WWWconfig['http']['width'];
 $stats = array();
 $printer_names = array();
-
-$result = $SQL->conn->query("SELECT * FROM `printers`.`printers`");
-while($fetch = $result->fetch(2))
+if($campus == 0)
 {
-    $result1 = $SQL->conn->query("SELECT `campus_name` FROM `printers`.`campuses` WHERE `id` = {$fetch["campus_id"]}");
-    $campus_fetch = $result1->fetch(2);
-    #get the newest stats for each printer.
-    $result2 = $SQL->conn->query("SELECT * FROM `printers`.`history` WHERE `printer_id` = '{$fetch["id"]}' ORDER BY `timestamp` DESC LIMIT 1");
-    $stats[$campus_fetch['campus_name']][$fetch["id"]] = $result2->fetch(2);
-    $stats[$campus_fetch['campus_name']][$fetch["id"]]['name'] = $fetch['name'];
+    $result = $SQL->conn->query("SELECT * FROM `printers`.`printers`");
+    while ($fetch = $result->fetch(2))
+    {
+        $result1 = $SQL->conn->query("SELECT `campus_name` FROM `printers`.`campuses` WHERE `id` = {$fetch["campus_id"]}");
+        $campus_fetch = $result1->fetch(2);
+        #get the newest stats for each printer.
+        $result2 = $SQL->conn->query("SELECT * FROM `printers`.`history` WHERE `printer_id` = '{$fetch["id"]}' ORDER BY `timestamp` DESC LIMIT 1");
+        $stats[$campus_fetch['campus_name']][$fetch["id"]] = $result2->fetch(2);
+        $stats[$campus_fetch['campus_name']][$fetch["id"]]['name'] = $fetch['name'];
+    }
+    #var_dump($stats);
+}else
+{
+    $result = $SQL->conn->query("SELECT * FROM `printers`.`printers`");
+    while ($fetch = $result->fetch(2))
+    {
+        if($campus == $fetch['campus_id'])
+        {
+            $result1 = $SQL->conn->query("SELECT `campus_name` FROM `printers`.`campuses` WHERE `id` = {$fetch["campus_id"]}");
+            $campus_fetch = $result1->fetch(2);
+            #get the newest stats for each printer.
+            $result2 = $SQL->conn->query("SELECT * FROM `printers`.`history` WHERE `printer_id` = '{$fetch["id"]}' ORDER BY `timestamp` DESC LIMIT 1");
+            $stats[$campus_fetch['campus_name']][$fetch["id"]] = $result2->fetch(2);
+            $stats[$campus_fetch['campus_name']][$fetch["id"]]['name'] = $fetch['name'];
+        }
+    }
 }
-
 function find_color($stat = 0)
 {
     if($stat >= 75)
@@ -72,6 +91,9 @@ $i = 0;
 foreach($stats as $key=>$printers)
 {
     $campuses[$i]['name'] = $key;
+    $result1 = $SQL->conn->query("SELECT `id` FROM `printers`.`campuses` WHERE `campus_name` = '$key'");
+    $campus_fetch = $result1->fetch(2);
+    $campuses[$i]['id'] = $campus_fetch['id'];
     $ii = 1;
     foreach($printers as $stat)
     {
@@ -93,15 +115,16 @@ foreach($stats as $key=>$printers)
         $campuses[$i]['array'][$ii]['kit_a_color'] = find_color((int)@$stat['kit_a']);
         $campuses[$i]['array'][$ii]['kit_b_color'] = find_color((int)@$stat['kit_b']);
         $campuses[$i]['array'][$ii]['new_row'] = "";
-        if((int)$width+2 === (int)$ii)
+        #var_dump($width+2, $ii);
+        if((int)$width+2 == (int)$ii)
         {
+            #var_dump($width+2, $ii);
             $campuses[$i]['array'][$ii]['new_row'] = "</tr><tr>";
         }
         $ii++;
     }
     $i++;
 }
-
+#die();
 $smarty->assign("campuses", $campuses);
 $smarty->display("index.tpl");
-?>

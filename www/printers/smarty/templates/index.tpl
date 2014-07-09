@@ -71,9 +71,9 @@
 <p align="center">
 <table>
     <tbody>
-{foreach $campuses as $campus}
+{foreach from=$campuses item="campus"}
     <tr>
-        <th colspan="10">{$campus.name}</th>
+        <th colspan="10"><a class="links" href="?campus_id={$campus.id}">{$campus.name}</a></th>
     </tr>
     <tr>
 {foreach $campus.array as $printer}
@@ -91,25 +91,25 @@
                     <td class='{$printer.status_color}'>Status: <b>{$printer.status|default:'Offline'}</b></td>
                 </tr>
                 <tr>
-                    <td class='all'>Count: <b>{$printer.count|default:0}</b> <a class="links" href="graphs/{$campus.name}_{$printer.name}_count.png">Graph</a></td>
+                    <td class='all'>Count: <b>{$printer.count|default:0}</b> <a class="links" href="graphs.php?id={$printer.printer_id}&graph=pagecount">Graph</a></td>
                 </tr>
                 <tr>
-                    <td class='{$printer.tray1_color}'>Tray 1: <b>{$printer.tray_1|default:0}</b> <a class="links" href="graphs/{$campus.name}_{$printer.name}_tray_1.png">Graph</a></td>
+                    <td class='{$printer.tray1_color}'>Tray 1: <b>{$printer.tray_1|default:0}</b> <a class="links" href="graphs.php?id={$printer.printer_id}&graph=levels">Graph</a></td>
                 </tr>
                 <tr>
-                    <td class='{$printer.tray2_color}'>Tray 2: <b>{$printer.tray_2|default:0}</b> <a class="links" href="graphs/{$campus.name}_{$printer.name}_tray_2.png">Graph</a></td>
+                    <td class='{$printer.tray2_color}'>Tray 2: <b>{$printer.tray_2|default:0}</b> <a class="links" href="graphs.php?id={$printer.printer_id}&graph=levels">Graph</a></td>
                 </tr>
                 <tr>
-                    <td class='{$printer.tray3_color}'>Tray 3: <b>{$printer.tray_3|default:0}</b> <a class="links" href="graphs/{$campus.name}_{$printer.name}_tray_3.png">Graph</a></td>
+                    <td class='{$printer.tray3_color}'>Tray 3: <b>{$printer.tray_3|default:0}</b> <a class="links" href="graphs.php?id={$printer.printer_id}&graph=levels">Graph</a></td>
                 </tr>
                 <tr>
-                    <td class='{$printer.toner_color}'>Toner: <b>{$printer.toner|default:0.00}</b> <a class="links" href="graphs/{$campus.name}_{$printer.name}_toner.png">Graph</a></td>
+                    <td class='{$printer.toner_color}'>Toner: <b>{$printer.toner|default:0.00}</b> <a class="links" href="graphs.php?id={$printer.printer_id}&graph=levels">Graph</a></td>
                 </tr>
                 <tr>
-                    <td class='{$printer.kit_a_color}'>Maint Kit A: <b>{$printer.kit_a|default:0.00}</b> <a class="links" href="graphs/{$campus.name}_{$printer.name}_kit_a.png">Graph</a></td>
+                    <td class='{$printer.kit_a_color}'>Maint Kit A: <b>{$printer.kit_a|default:0.00}</b> <a class="links" href="graphs.php?id={$printer.printer_id}&graph=levels">Graph</a></td>
                 </tr>
                 <tr>
-                    <td class='{$printer.kit_b_color}'>Maint Kit B: <b>{$printer.kit_b|default:0.00}</b> <a class="links" href="graphs/{$campus.name}_{$printer.name}_kit_b.png">Graph</a></td>
+                    <td class='{$printer.kit_b_color}'>Maint Kit B: <b>{$printer.kit_b|default:0.00}</b> <a class="links" href="graphs.php?id={$printer.printer_id}&graph=levels">Graph</a></td>
                 </tr>
                 </tbody>
             </table>
