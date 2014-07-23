@@ -24,9 +24,9 @@ class PrinterStats:
 
     def check_printers_table(self, model_functions, conn, all_hosts):
         print "---------------------"
-
         for printer in all_hosts:
             shost = all_hosts[printer][0]
+            print "Checking "+shost
             model = all_hosts[printer][1]
             pid = all_hosts[printer][2]
             row = conn.getprinterid(shost)

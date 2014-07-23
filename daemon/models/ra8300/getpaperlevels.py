@@ -15,23 +15,18 @@ def getpaperlevels(shost):
             #print str(img) + "\r\n"
             m = rg.search(str(img))
             if m:
+                level = m.group(1).replace("_", "").replace("P", "")
+                #print level
                 i += 1
                 if i == 1:
                     continue
                 if i == 2:
                     continue
-                if i == 3:
-                    continue
                 if i == 5:
                     continue
-                if i == 7:
-                    continue
-                if i > 8:
+                if i > 6:
                     break
-
                 #print i
-                level = m.group(1).replace("_", "").replace("P", "")
-                #print level
                 supplies.append(str(level))
     if supplies[2] == "Ot":
         #print "Bad results, try again."
