@@ -16,35 +16,12 @@ def getpaperlevels(shost):
             m = rg.search(str(img))
             if m:
                 level = m.group(1).replace("_", "").replace("P", "")
-                print level
                 if i == 3:
                     break
-                print i
                 if level == "end":
                     i += 1
                     supplies.append(str(level))
                 if level.isdigit() is True:
                     i += 1
                     supplies.append(str(level))
-                print "---------------"
-    if supplies[2] == "Ot":
-        #print "Bad results, try again."
-        supplies = []
-        i = 0
-        for supply in soup.findAll("tr", {'class': 'staticProp'}):
-            #print str(supply) + "\r\n"
-            for img in supply.findAll("img"):
-                #print str(img) + "\r\n"
-                m = rg.search(str(img))
-                if m:
-                    i += 1
-                    if i > 7:
-                        break
-                    if i < 5:
-                        continue
-                    #print i
-                    level = m.group(1).replace("_", "").replace("P", "")
-                    #print level
-                    supplies.append(str(level))
-
     return supplies
