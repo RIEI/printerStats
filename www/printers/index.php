@@ -20,29 +20,29 @@ if not, write to the
 */
 
 require "lib/config.php"; #www config
-$config = parse_ini_file($WWWconfig['daemon_path']."/config/config.ini");
+#$config = parse_ini_file($WWWconfig['daemon_path']."/config/config.ini");
 require "lib/SQL.php"; #the uh.. SQL class...
-require $WWWconfig['smarty_path']."/Smarty.class.php"; #get smarty..
+require $WWWconfig['http']['smarty_path']."/Smarty.class.php"; #get smarty..
 
 #now lets build the SQL class.
-$SQL = new SQL($config);
+$SQL = new SQL($WWWconfig['SQL']);
 
 #setup smarty
 $smarty = new smarty();
-$smarty->setTemplateDir( $WWWconfig['smarty_path']."/templates/" );
-$smarty->setCompileDir( $WWWconfig['smarty_path']."/templates_c/" );
-$smarty->setCacheDir( $WWWconfig['smarty_path']."/cache/" );
-$smarty->setConfigDir( $WWWconfig['smarty_path']."/configs/" );
+$smarty->setTemplateDir( $WWWconfig['http']['smarty_path']."/templates/" );
+$smarty->setCompileDir( $WWWconfig['http']['smarty_path']."/templates_c/" );
+$smarty->setCacheDir( $WWWconfig['http']['smarty_path']."/cache/" );
+$smarty->setConfigDir( $WWWconfig['http']['smarty_path']."/configs/" );
 
 #fetch the Printers that we are watching.
-$campus = (int)$_GET['campus_id'];
+$campus = ((int)@$_GET['campus_id'] === 0) ? 0 : (int)$_GET['campus_id'];
 
 $width = 7; #$WWWconfig['http']['width'];
 $stats = array();
 $printer_names = array();
 if($campus == 0)
 {
-    $result = $SQL->conn->query("SELECT * FROM `printers`.`printers`");
+    $result = $SQL->conn->query("SELECT * FROM `printers`.`printers` ORDER BY `name` ASC");
     while ($fetch = $result->fetch(2))
     {
         $result1 = $SQL->conn->query("SELECT `campus_name` FROM `printers`.`campuses` WHERE `id` = {$fetch["campus_id"]}");
@@ -55,7 +55,7 @@ if($campus == 0)
     #var_dump($stats);
 }else
 {
-    $result = $SQL->conn->query("SELECT * FROM `printers`.`printers`");
+    $result = $SQL->conn->query("SELECT * FROM `printers`.`printers` ORDER BY `name` ASC");
     while ($fetch = $result->fetch(2))
     {
         if($campus == $fetch['campus_id'])
@@ -98,7 +98,7 @@ foreach($stats as $key=>$printers)
     foreach($printers as $stat)
     {
         $stat['status'] = (@$stat['status'] ? $stat['status'] : "Offline");
-        if($stat['status'] == "Offline" || $stat['status'] == "Alert")
+        if($stat['status'] == "Offline" || $stat['status'] == "Alert" || $stat['status'] == "Paper Missfeed")
         {
             $status_color = "bad";
         }else{
