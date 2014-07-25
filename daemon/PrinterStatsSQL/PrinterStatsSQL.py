@@ -12,10 +12,14 @@ class PrinterStatsSQL:
             self.limit = " LIMIT " + str(self.limit)
 
     def setprintervalues(self, supplies, host, pid):
-        self.cur.execute("INSERT INTO `printers`.`history` ( `id`, `printer_id`, `timestamp`, `status`, `tray_1`, "
+        try:
+            self.cur.execute("INSERT INTO `printers`.`history` ( `id`, `printer_id`, `timestamp`, `status`, `tray_1`, "
                     "`tray_2`, `tray_3`, `count`, `toner`, `kit_a`, `kit_b` )"
                     "VALUES ( NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s )", (pid, str(time.time()), str(supplies[0]), str(supplies[2][0]),
                      str(supplies[2][1]), str(supplies[2][2]), str(supplies[1]), str(supplies[3][0]), str(supplies[3][1]), str(supplies[3][2])))
+        except IndexError:
+            print supplies
+
         self.conn.commit()
         return 1
 
@@ -26,8 +30,12 @@ class PrinterStatsSQL:
         self.conn.commit()
         return 1
 
-    def setprinteroffline(self, pid, host):
+    def setprinteroffline(self, pid):
         self.cur.execute("INSERT INTO `printers`.`history` ( `id`, `printer_id`, `timestamp`, `status`) VALUES ( NULL, %s, %s, 'Offline') ", (pid, str(time.time()) ) )
+
+    def updateHostName(self, host, pid):
+        self.cur.execute("UPDATE `printers`.`printers` SET `name` = %s WHERE id = %s ", ( host, pid))
+        self.conn.commit()
 
     def updateprinter(self, host_name, model, supplies):
         if supplies == '':
@@ -42,8 +50,6 @@ class PrinterStatsSQL:
         self.cur.execute("INSERT INTO `printers`.`campuses` (`id`, `campus_name`) VALUES (NULL, %s)", campus_name)
         self.conn.commit()
         return self.cur.lastrowid
-
-
 
     def getcampusid(self, campus_name):
         self.cur.execute("SELECT `id` FROM `printers`.`campuses` WHERE `campus_name` = %s", campus_name)

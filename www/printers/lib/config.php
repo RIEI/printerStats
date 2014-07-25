@@ -1,7 +1,7 @@
 <?php
-
+global $WWWconfig;
 #SQL Settings
-$WWWconfig['SQL']['host']    =  "10.2.75.122";
+$WWWconfig['SQL']['host']    =  "localhost";
 $WWWconfig['SQL']['srvc']    =  "mysql";
 $WWWconfig['SQL']['db_user'] =  "printerstats";
 $WWWconfig['SQL']['db_pwd']  =  "printerstats";
