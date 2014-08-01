@@ -1,4 +1,9 @@
 .idea
 *.pyc
 *.ini
-www/printers/smarty/*
+www/printers/smarty/sysplugins
+www/printers/smarty/plugins
+www/printers/smarty/SmartyBC.class.php
+www/printers/smarty/Smarty.class.php
+www/printers/smarty/Debug.tpl
+www/printers/lib/config.php

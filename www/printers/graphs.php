@@ -18,26 +18,22 @@ if not, write to the
    59 Temple Place, Suite 330,
    Boston, MA 02111-1307 USA
 */
-
 require "lib/config.php"; #www config
-$config = parse_ini_file($WWWconfig['daemon_path']."/config/config.ini");
+#$config = parse_ini_file($WWWconfig['daemon_path']."/config/config.ini");
 require "lib/SQL.php"; #the uh.. SQL class...
-require $WWWconfig['smarty_path']."/Smarty.class.php"; #get smarty..
+require $WWWconfig['http']['smarty_path']."/Smarty.class.php"; #get smarty..
 
 #now lets build the SQL class.
-$SQL = new SQL($config);
+$SQL = new SQL($WWWconfig['SQL']);
 
 #setup smarty
 $smarty = new smarty();
-$smarty->setTemplateDir( $WWWconfig['smarty_path']."/templates/" );
-$smarty->setCompileDir( $WWWconfig['smarty_path']."/templates_c/" );
-$smarty->setCacheDir( $WWWconfig['smarty_path']."/cache/" );
-$smarty->setConfigDir( $WWWconfig['smarty_path']."/configs/" );
+$smarty->setTemplateDir( $WWWconfig['http']['smarty_path']."/templates/" );
+$smarty->setCompileDir( $WWWconfig['http']['smarty_path']."/templates_c/" );
+$smarty->setCacheDir( $WWWconfig['http']['smarty_path']."/cache/" );
+$smarty->setConfigDir( $WWWconfig['http']['smarty_path']."/configs/" );
 
 #fetch the Printers that we are watching.
-$width = $WWWconfig['width'];
-$stats = array();
-$printer_names = array();
 
 if(!(empty($_GET['from']) || empty($_GET['to'])))
 {
@@ -59,6 +55,7 @@ if(!(empty($_GET['from']) || empty($_GET['to'])))
     FROM `printers`.`printers`, `printers`.`history` WHERE `printers`.`id` = `history`.`printer_id` AND `count` != 0
     AND `printers`.`id` = ? AND `history`.`timestamp` > ? and `history`.`timestamp` < ? ORDER BY `history`.`id` DESC)
     tmp ORDER BY `tmp`.`id` ASC");
+
     $prep->bindParam(1, $_GET['id'], PDO::PARAM_INT);
     $prep->bindParam(2, $_GET['from'], PDO::PARAM_INT);
     $prep->bindParam(3, $_GET['to'], PDO::PARAM_INT);
@@ -67,8 +64,9 @@ if(!(empty($_GET['from']) || empty($_GET['to'])))
     $prep = $SQL->conn->prepare("SELECT * FROM (
     SELECT `history`.`id`, `name`, `timestamp`, FROM_UNIXTIME(`timestamp`) as `datestamp`, `count`, `tray_1`, `tray_2`, `tray_3`, `toner`, `kit_a`, `kit_b`
     FROM `printers`.`printers`, `printers`.`history` WHERE `printers`.`id` = `history`.`printer_id` AND `count` != 0
-    AND `printers`.`id` = ? ORDER BY `history`.`id` DESC LIMIT 144)
+    AND `printers`.`id` = ? ORDER BY `history`.`id` DESC LIMIT 256)
     tmp ORDER BY `tmp`.`id` ASC");
+
     $prep->bindParam(1, $_GET['id'], PDO::PARAM_INT);
 }
 
@@ -76,37 +74,76 @@ $prep->execute();
 $SQL->checkError();
 $fetch = $prep->fetchAll(2);
 
-$smarty->assign('printer_rows', $fetch);
-
+$smarty->assign('printer_name', $fetch[0]['name']);
 switch(strtolower($_GET['graph']))
 {
     case "pagecount":
+        $smarty->assign('printer_rows', $fetch);
+        $smarty->assign('allURL', '?id='.(int)$_GET['id'].'&amp;graph=pagecount&amp;from=first&amp;to=now');
         $smarty->display('PageCount.tpl');
         break;
 
     case "levels":
         if(strtolower($_GET['type']) == '')
         {
+            $smarty->assign('printer_rows', $fetch);
             $smarty->display('AllLevels.tpl');
         }else
         {
+            $smarty->assign('allURL', '?id='.(int)$_GET['id'].'&amp;graph=levels');
+
             Switch(strtolower($_GET['type']))
             {
                 case "toner":
+                    $smarty->assign('printer_rows', ExtractData($fetch, 'toner'));
 
+                    $smarty->assign('item', 'toner');
+                    $smarty->assign('label', 'toner');
+                    $smarty->display('SingleLevels.tpl');
                 break;
 
                 case "kita":
+                    $smarty->assign('printer_rows', ExtractData($fetch, 'kit_a'));
 
+                    $smarty->assign('item', 'kita');
+                    $smarty->assign('label', 'kita');
+                    $smarty->display('SingleLevels.tpl');
                 break;
 
                 case "kitb":
+                    $smarty->assign('printer_rows', ExtractData($fetch, 'kit_b'));
 
+                    $smarty->assign('item', 'kitb');
+                    $smarty->assign('label', 'kitb');
+                    $smarty->display('SingleLevels.tpl');
                 break;
 
                 case "tray1":
+                    $smarty->assign('printer_rows', ExtractData($fetch, 'tray_1'));
 
+                    $smarty->assign('item', 'tray1');
+                    $smarty->assign('label', 'tray1');
+                    $smarty->display('SingleLevels.tpl');
+                break;
+
+                case "tray2":
+                    $smarty->assign('printer_rows', ExtractData($fetch, 'tray_2'));
+
+                    $smarty->assign('item', 'tray2');
+                    $smarty->assign('label', 'tray2');
+                    $smarty->display('SingleLevels.tpl');
                     break;
+
+                case "tray3":
+                    $smarty->assign('printer_rows', ExtractData($fetch, 'tray_3'));
+
+                    $smarty->assign('item', 'tray3');
+                    $smarty->assign('label', 'tray3');
+                    $smarty->display('SingleLevels.tpl');
+                    break;
+                default:
+                    echo "Incorrect Use of the \$_GET['type'] switch.";
+                break;
             }
         }
         break;
@@ -114,4 +151,16 @@ switch(strtolower($_GET['graph']))
     default:
         Echo "Incorrect use of the \$_GET['graph'] switch.";
         break;
+}
+
+
+
+function ExtractData($array, $item)
+{
+    $data = array();
+    foreach($array as $row)
+    {
+        array_push($data, array($row['datestamp'], $row[$item]));
+    }
+    return $data;
 }
