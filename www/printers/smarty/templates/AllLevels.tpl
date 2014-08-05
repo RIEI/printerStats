@@ -40,6 +40,7 @@
     </script>
 </head>
 <body>
+<a href="{$allURL}">Show All History</a>
 <div id="chart_div" style="width: 100%; height: 100%;"></div>
 </body>
 </html>

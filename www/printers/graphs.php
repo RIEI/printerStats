@@ -90,7 +90,7 @@ switch(strtolower($_GET['graph']))
             $smarty->display('AllLevels.tpl');
         }else
         {
-            $smarty->assign('allURL', '?id='.(int)$_GET['id'].'&amp;graph=levels');
+            $smarty->assign('allURL', '?id='.(int)$_GET['id'].'&amp;graph=levelsfrom=first&amp;to=now');
 
             Switch(strtolower($_GET['type']))
             {
