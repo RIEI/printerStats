@@ -1,18 +1,15 @@
 #!/usr/bin/python
 __author__ = 'pferland'
 __email__ = "pferland@randomintervals.com"
-__lastedit__ = "2014-June-03"
-print "PrinterStats Daemon v2.1 GPL V2.0 (2013-Dec) \n\tAuthor: " + __author__ + "\n\tEmail: " + __email__ + "\n\tLast Edit: " + __lastedit__
-import re, os, sys, time, socket, errno
+__lastedit__ = "2014-Apr-04"
+print "PrinterStats Daemon v2.0 GPL V2.0 (2013-Dec) \n\tAuthor: " + __author__ + "\n\tEmail: " + __email__ + "\n\tLast Edit: " + __lastedit__
+import re, sys, time, socket, errno
 from PrintersConfig import *
 from PrinterStatsSQL import *
 from PrinterStats import *
 
 # INI file init, config/config.ini and config/printers.ini
-folder = os.path.dirname(os.path.realpath(__file__))
-
-# INI file init, config/config.ini and config/printers.ini
-pcfg = PrintersConfig(folder)
+pcfg = PrintersConfig()
 config = pcfg.ConfigMap("Daemon")
 campuses = pcfg.CampusMap("Campuses")['Campuses'].split(",")
 printers = pcfg.ConfigMapPrinters("Printers").get("Printers")

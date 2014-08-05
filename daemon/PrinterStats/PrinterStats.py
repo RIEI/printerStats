@@ -24,20 +24,27 @@ class PrinterStats:
 
     def check_printers_table(self, model_functions, conn, all_hosts):
         print "---------------------"
-
         for printer in all_hosts:
             shost = all_hosts[printer][0]
+            print "Checking "+shost
+            pid = printer+1
+            print pid
+            SqlHostName = conn.gethostname(pid)
+            print SqlHostName
+
+            if shost != SqlHostName:
+                print "HostName Needs Updating"
+                conn.updateHostName(shost, pid )
             model = all_hosts[printer][1]
-            pid = all_hosts[printer][2]
             row = conn.getprinterid(shost)
             check = self.hostcheck(shost)
             print shost + " is " + check
             if check == "down":
                 if not row:
                     self.conn.setprinter(shost, pid, model, '')
-                    self.conn.setprinteroffline(pid, shost)
+                    self.conn.setprinteroffline(pid)
                 else:
-                    self.conn.setprinteroffline(pid, shost)
+                    self.conn.setprinteroffline(pid)
                 print "---------------------"
                 continue
 
