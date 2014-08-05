@@ -1,36 +1,34 @@
--- phpMyAdmin SQL Dump
--- version 3.4.11.1deb2
--- http://www.phpmyadmin.net
 --
--- Host: localhost
--- Generation Time: Aug 18, 2013 at 08:02 PM
--- Server version: 1.0.3
--- PHP Version: 5.4.4-14+deb7u3
-
-
-SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
-SET time_zone = "+00:00";
-
-SET NAMES utf8;
-
-Create Database printers;
-use printers;
+-- Table structure for table `campuses`
 --
--- Database: `printers`
---
-
--- --------------------------------------------------------
-CREATE TABLE IF NOT EXISTS `campuses` (
+CREATE TABLE `campuses` (
   `id` int(255) NOT NULL AUTO_INCREMENT,
   `campus_name` varchar(255) COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (`id`),
   KEY `id` (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=1;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+
+
+--
+-- Table structure for table `error_log`
+--
+CREATE TABLE `error_log` (
+  `id` int(255) NOT NULL AUTO_INCREMENT,
+  `host` varchar(255) COLLATE utf8_bin NOT NULL,
+  `message` varchar(32) COLLATE utf8_bin NOT NULL,
+  `timestamp` int(32) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `id` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+
+
 --
 -- Table structure for table `history`
 --
 
-CREATE TABLE IF NOT EXISTS `history` (
+CREATE TABLE `history` (
   `id` int(255) NOT NULL AUTO_INCREMENT,
   `printer_id` int(255) NOT NULL,
   `timestamp` int(255) NOT NULL,
@@ -45,40 +43,22 @@ CREATE TABLE IF NOT EXISTS `history` (
   `kit_b` double(5,2) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `id` (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=1;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
--- --------------------------------------------------------
+
 
 --
 -- Table structure for table `printers`
 --
-
-CREATE TABLE IF NOT EXISTS `printers` (
+CREATE TABLE `printers` (
   `id` int(255) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) COLLATE utf8_bin NOT NULL,
   `mac` varchar(32) COLLATE utf8_bin NOT NULL,
   `serial` varchar(255) COLLATE utf8_bin NOT NULL,
   `model` varchar(255) COLLATE utf8_bin NOT NULL,
-  `campus_id` int (255) NOT NULL,
+  `campus_id` int(255) NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE (`name`),
+  UNIQUE KEY `name` (`name`),
   KEY `id` (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=1 ;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `error_log`
---
-
-CREATE TABLE IF NOT EXISTS `error_log` (
-  `id` int(255) NOT NULL AUTO_INCREMENT,
-  `host` varchar(255) COLLATE utf8_bin NOT NULL,
-  `message` varchar(32) COLLATE utf8_bin NOT NULL,
-  `timestamp` int(32) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `id` (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COLLATE=utf8_bin AUTO_INCREMENT=1 ;
-
-
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
