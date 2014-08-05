@@ -1,5 +1,5 @@
 <html>
-<title>{$printer_rows.0.name} Page Count</title>
+<title>{$printer_name} Page Count</title>
 <head>
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script type="text/javascript">

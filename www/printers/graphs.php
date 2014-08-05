@@ -86,17 +86,18 @@ switch(strtolower($_GET['graph']))
     case "levels":
         if(strtolower($_GET['type']) == '')
         {
+            $smarty->assign('allURL', '?id='.(int)$_GET['id'].'&amp;graph=levels&amp;from=first&amp;to=now');
             $smarty->assign('printer_rows', $fetch);
             $smarty->display('AllLevels.tpl');
         }else
         {
-            $smarty->assign('allURL', '?id='.(int)$_GET['id'].'&amp;graph=levelsfrom=first&amp;to=now');
+
 
             Switch(strtolower($_GET['type']))
             {
                 case "toner":
                     $smarty->assign('printer_rows', ExtractData($fetch, 'toner'));
-
+                    $smarty->assign('allURL', '?id='.(int)$_GET['id'].'&amp;type=toner&amp;graph=levels&amp;from=first&amp;to=now');
                     $smarty->assign('item', 'toner');
                     $smarty->assign('label', 'toner');
                     $smarty->display('SingleLevels.tpl');
@@ -104,7 +105,7 @@ switch(strtolower($_GET['graph']))
 
                 case "kita":
                     $smarty->assign('printer_rows', ExtractData($fetch, 'kit_a'));
-
+                    $smarty->assign('allURL', '?id='.(int)$_GET['id'].'&amp;type=kita&amp;graph=levels&amp;from=first&amp;to=now');
                     $smarty->assign('item', 'kita');
                     $smarty->assign('label', 'kita');
                     $smarty->display('SingleLevels.tpl');
@@ -112,7 +113,7 @@ switch(strtolower($_GET['graph']))
 
                 case "kitb":
                     $smarty->assign('printer_rows', ExtractData($fetch, 'kit_b'));
-
+                    $smarty->assign('allURL', '?id='.(int)$_GET['id'].'&amp;type=kitb&amp;graph=levels&amp;from=first&amp;to=now');
                     $smarty->assign('item', 'kitb');
                     $smarty->assign('label', 'kitb');
                     $smarty->display('SingleLevels.tpl');
@@ -120,7 +121,7 @@ switch(strtolower($_GET['graph']))
 
                 case "tray1":
                     $smarty->assign('printer_rows', ExtractData($fetch, 'tray_1'));
-
+                    $smarty->assign('allURL', '?id='.(int)$_GET['id'].'&amp;type=tray1&amp;graph=levels&amp;from=first&amp;to=now');
                     $smarty->assign('item', 'tray1');
                     $smarty->assign('label', 'tray1');
                     $smarty->display('SingleLevels.tpl');
@@ -128,7 +129,7 @@ switch(strtolower($_GET['graph']))
 
                 case "tray2":
                     $smarty->assign('printer_rows', ExtractData($fetch, 'tray_2'));
-
+                    $smarty->assign('allURL', '?id='.(int)$_GET['id'].'&amp;type=tray2&amp;graph=levels&amp;from=first&amp;to=now');
                     $smarty->assign('item', 'tray2');
                     $smarty->assign('label', 'tray2');
                     $smarty->display('SingleLevels.tpl');
@@ -136,7 +137,7 @@ switch(strtolower($_GET['graph']))
 
                 case "tray3":
                     $smarty->assign('printer_rows', ExtractData($fetch, 'tray_3'));
-
+                    $smarty->assign('allURL', '?id='.(int)$_GET['id'].'&amp;type=tray3&amp;graph=levels&amp;from=first&amp;to=now');
                     $smarty->assign('item', 'tray3');
                     $smarty->assign('label', 'tray3');
                     $smarty->display('SingleLevels.tpl');
